@@ -15,7 +15,7 @@ from telegram.ext import Filters, CallbackContext, ConversationHandler
 from telegram.ext import CallbackQueryHandler
 
 from shop import get_products, get_product, get_product_image, put_product_in_cart
-from shop import get_cart_description, delete_all_cart_products, create_customer
+from shop import get_cart_description, delete_all_cart_products
 from shop import get_cart_products, delete_cart_products, create_customer
 
 
@@ -23,9 +23,9 @@ logger = logging.getLogger(__name__)
 redis_connect = None
 
 
-def get_cart_menu(chat_id, user_id):
+def get_cart_menu(chat_id):
     base_url = redis_connect.get('base_url').decode('utf-8')
-    cart = get_cart_description(base_url, user_id, chat_id)
+    cart = get_cart_description(base_url, chat_id)
     keyboard = []
     cart_products = []
     for _, item in enumerate(cart['data']['attributes']['products']['data']):
@@ -181,17 +181,17 @@ def handle_description(update: Update, context: CallbackContext):
         bot.delete_message(chat_id=chat_id, message_id=query.message.message_id)
         return 'HANDLE_DESCRIPTION'
     elif query.data.find('weight') >= 0:
-        product_data = query.data.split('|')
-        weight, product_id = int(product_data[0]), product_data[1]
+        weight, product_id = query.data.split('|')
+        weight, product_id = int(weight), product_id
         base_url = redis_connect.get('base_url').decode('utf-8')
-        put_product_in_cart(base_url, product_id, weight, chat_id.__str__(), user_id.__str__())
+        put_product_in_cart(base_url, product_id, weight, chat_id.__str__())
         bot.send_message(chat_id=chat_id, text='Product put to cart successfully.')
         return 'HANDLE_DESCRIPTION'
     elif query.data == 'back':
         bot.delete_message(chat_id=chat_id, message_id=query.message.message_id)
         return start(update, context)
     elif query.data == 'cart':
-        message, reply_markup = get_cart_menu(chat_id, user_id)
+        message, reply_markup = get_cart_menu(chat_id)
         bot.send_message(chat_id, text=message, reply_markup=reply_markup)
         bot.delete_message(chat_id=chat_id, message_id=query.message.message_id)
         return 'HANDLE_CART'
@@ -254,7 +254,7 @@ def cancel(update: Update, context: CallbackContext):
 def start_bot():
     load_dotenv()
     get_database_connection()
-    base_url, client_id, client_secret = os.getenv('base_url'), os.getenv('client_id'), os.getenv('client_secret')
+    base_url = os.getenv('base_url')
     redis_connect.set('base_url', base_url)
     token = os.getenv('TG_TOKEN')
     updater = Updater(token)
@@ -275,7 +275,6 @@ def get_database_connection():
     if redis_connect is None:
         redis_connect = redis.Redis(host=os.getenv('REDIS_HOST'), port=os.getenv('REDIS_PORT'), db=0)
     return redis_connect
-
 
 
 if __name__ == '__main__':
