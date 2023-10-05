@@ -16,27 +16,18 @@ pip install -r requirements.txt
 
 
 ## Создайте магазин на сайте [strapi](https://github.com/strapi/strapi)
+
 Разверните локальную CMS и наполните ее данными.
 
 
-```sh
-nodejs --version
-# v16.16.0
-# Если ошибка, попробуйте node:
-node --version
-# v16.16.0
-
-npm --version
-# 8.11.0
-
-
-Для телеграм бота потребуются настройки из файла `.env`:
+Для телеграм бота потребуются настройки переменных окружения из файла `.env`:
 ```
 TG_TOKEN = 'токен вашего бота в телеграм'
 
 base_url = 'http://localhost:1337'
 
 REDIS_HOST = 'localhost'
+
 REDIS_PORT = '6379'
 ```
 
